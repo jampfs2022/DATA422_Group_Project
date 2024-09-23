@@ -7,7 +7,9 @@ list.files("C:/rfiles/DATA422/Project")
 #-------------------------------------------------------------------------------
 # Classification Report: Statistical Area 2 2023
 sa2 <- read_csv("C:/rfiles/DATA422/Project/sa2_2023.csv",
-                skip = 6)
+                skip = 6,
+                col_names = c("sa2_code", "sa2_descriptor")
+                )
 head(sa2)
 
 #-------------------------------------------------------------------------------
@@ -17,14 +19,6 @@ sa2_tO_ta <- read_csv("C:/rfiles/DATA422/Project/sa2_ta_concord_2023.csv",
                       skip = 7,
                       col_names = c("sa2_code", "sa2_descriptor", "Mapping", "ta_code","ta_descriptor"))
 head(sa2_tO_ta)
-
-#-------------------------------------------------------------------------------
-# Sub-national Population Estimates
-
-pop <- read_csv("C:/rfiles/DATA422/Project/subnational_pop_ests.csv") %>%
-  rename(year = `Year at 30 June`)
-head(pop)
-
 
 #-------------------------------------------------------------------------------
 # Concordance Report: Urban Rural 2023 to Urban Rural Indicator
@@ -41,3 +35,12 @@ sa2_to_ur <- read_csv("C:/rfiles/DATA422/Project/urban_rural_to_sa2_concord_2023
                       skip = 7,
                       col_names = c("sa2_code", "sa2_descriptor", "Mapping", "ur_code","ur_descriptor"))
 head(sa2_to_ur)
+
+
+#-------------------------------------------------------------------------------
+# Sub-national Population Estimates
+
+pop <- read_csv("C:/rfiles/DATA422/Project/subnational_pop_ests.csv") %>%
+  rename(year = `Year at 30 June`)
+head(pop)
+
