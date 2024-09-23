@@ -4,7 +4,7 @@ getwd()
 list.files("C:/rfiles/DATA422/Project")
 
 #-------------------------------------------------------------------------------
-## LOAD IN FILES
+# LOAD IN FILES
 #-------------------------------------------------------------------------------
 # Classification Report: Statistical Area 2 2023
 sa2 <- read_csv("C:/rfiles/DATA422/Project/sa2_2023.csv",
@@ -38,15 +38,23 @@ sa2_to_ur <- read_csv("C:/rfiles/DATA422/Project/urban_rural_to_sa2_concord_2023
 head(sa2_to_ur)
 
 #-------------------------------------------------------------------------------
-## CHECK DATA
+# CHECK DATA
 #-------------------------------------------------------------------------------
 
+# SA2
+
+# check for NA
+sa2 %>% filter(is.na(sa2_code))
+sa2 %>% filter(is.na(sa2_descriptor))
+
+# check for duplicates
 summary(sa2)
-sa2 %>% count(sa2_code) # 2396 unique values, so no duplicates
+sa2 %>% count(sa2_code) # 2395 unique values, so no duplicates
+sa2 %>% count(sa2_descriptor) # 2395 unique values, so no duplicates
 
-na_rows <- sa2 %>%
-  filter(is.na(sa2_code))
-na_rows
-
+# convert code from character to integer
 sa2$sa2_code <- as.integer(sa2$sa2_code)
 head(sa2)
+
+summary(sa2)
+
