@@ -15,10 +15,10 @@ head(sa2)
 #-------------------------------------------------------------------------------
 # Concordance Report: Statistical Area 2 2023 to Territorial Authority 2023
 
-sa2_tO_ta <- read_csv("C:/rfiles/DATA422/Project/sa2_ta_concord_2023.csv",
+sa2_to_ta <- read_csv("C:/rfiles/DATA422/Project/sa2_ta_concord_2023.csv",
                       skip = 7,
                       col_names = c("sa2_code", "sa2_descriptor", "Mapping", "ta_code","ta_descriptor"))
-head(sa2_tO_ta)
+head(sa2_to_ta)
 
 #-------------------------------------------------------------------------------
 # Concordance Report: Urban Rural 2023 to Urban Rural Indicator
