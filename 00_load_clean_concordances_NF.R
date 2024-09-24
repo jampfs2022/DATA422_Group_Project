@@ -133,4 +133,20 @@ sa2_to_ur %>%
 summary(ur_to_uri)
 str(ur_to_uri)
 
+# check for NA
+ur_to_uri %>% filter(is.na(ur_code))
+ur_to_uri %>% filter(is.na(ur_descriptor))
+ur_to_uri %>% filter(is.na(Mapping))
+ur_to_uri %>% filter(is.na(uri_code))
+ur_to_uri %>% filter(is.na(uri_descriptor))
 
+# check for duplicates
+ur_to_uri %>% count(ur_code) # 745 unique values, so no duplicates
+ur_to_uri %>% count(ur_descriptor) # 745 unique values, so no duplicates
+ur_to_uri %>% count(Mapping) # 1 values
+ur_to_uri %>% count(uri_code) # 9 unique values
+ur_to_uri %>% count(uri_descriptor) # 9 unique values
+
+# remove redundant column
+ur_to_uri <- ur_to_uri%>% select(-Mapping)
+colnames(ur_to_uri)
