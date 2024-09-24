@@ -38,7 +38,7 @@ sa2_to_ur <- read_csv("C:/rfiles/DATA422/Project/urban_rural_to_sa2_concord_2023
 head(sa2_to_ur)
 
 #-------------------------------------------------------------------------------
-# CHECK DATA
+# CLEAN DATA
 #-------------------------------------------------------------------------------
 
 # SA2
@@ -58,3 +58,34 @@ head(sa2)
 
 summary(sa2)
 
+sa2[1,]
+sa2[2395,]
+
+#-------------------------------------------------------------------------------
+# sa2_ta_concord_2023
+# 2395
+
+summary(sa2_to_ta)
+
+str(sa2_to_ta)
+
+# check for NA
+sa2_to_ta %>% filter(is.na(sa2_code))
+sa2_to_ta %>% filter(is.na(sa2_descriptor))
+sa2_to_ta %>% filter(is.na(Mapping))
+sa2_to_ta %>% filter(is.na(ta_code))
+sa2_to_ta %>% filter(is.na(ta_descriptor))
+
+# check for duplicates
+sa2_to_ta %>% count(sa2_code) # 2395 unique values, so no duplicates
+sa2_to_ta %>% count(sa2_descriptor) # 2395 unique values
+sa2_to_ta %>% count(Mapping) # only 1 unique calue: column all the same
+sa2_to_ta %>% count(ta_code) # 68 unique values
+sa2_to_ta %>% count(ta_descriptor) #68 unique values
+
+# remove redundant column
+sa2_to_ta <- sa2_to_ta %>% select(-Mapping)
+colnames(sa2_to_ta)
+
+#-------------------------------------------------------------------------------
+#
