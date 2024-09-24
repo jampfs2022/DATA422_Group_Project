@@ -150,3 +150,22 @@ ur_to_uri %>% count(uri_descriptor) # 9 unique values
 # remove redundant column
 ur_to_uri <- ur_to_uri%>% select(-Mapping)
 colnames(ur_to_uri)
+
+
+#-------------------------------------------------------------------------------
+# Compare columns in different dataframes
+#-------------------------------------------------------------------------------
+
+# sa2 & sa2_to_ta:
+
+# Compare columns pairwise and create a column for each comparison
+comparison_df <- sa2 %>%
+  mutate(same_col1 = sa2$sa2_code == sa2_to_ta$sa2_code,
+         same_col2 = sa2$sa2_descriptor == sa2_to_ta$sa2_descriptor)
+
+# View rows where there is a mismatch
+comparison_df %>% filter(!same_col1 | !same_col2)
+
+
+
+
