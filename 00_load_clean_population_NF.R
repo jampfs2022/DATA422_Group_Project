@@ -72,7 +72,7 @@ pop_clean <- pop_clean %>%
 summary(pop_clean)
 
 
-# check that totals correspond
+# check that totals correspond - no they don't so not totals? check data source for more info.
 
 age_summary <- pop_clean %>%
   group_by(age) %>%
