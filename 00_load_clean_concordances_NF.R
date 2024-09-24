@@ -22,6 +22,14 @@ sa2_to_ta <- read_csv("C:/rfiles/DATA422/Project/sa2_ta_concord_2023.csv",
 head(sa2_to_ta)
 
 #-------------------------------------------------------------------------------
+# Concordance report: Statistical Area 2 2023 to Urban Rural 2023
+
+sa2_to_ur <- read_csv("C:/rfiles/DATA422/Project/urban_rural_to_sa2_concord_2023.csv",
+                      skip = 7,
+                      col_names = c("sa2_code", "sa2_descriptor", "Mapping", "ur_code","ur_descriptor"))
+head(sa2_to_ur)
+
+#-------------------------------------------------------------------------------
 # Concordance Report: Urban Rural 2023 to Urban Rural Indicator
 
 ur_to_uri <- read_csv("C:/rfiles/DATA422/Project/urban_rural_to_indicator_2023.csv",
@@ -29,13 +37,7 @@ ur_to_uri <- read_csv("C:/rfiles/DATA422/Project/urban_rural_to_indicator_2023.c
                       col_names = c("ur_code", "ur_descriptor", "Mapping", "uri_code","uri_descriptor"))
 head(ur_to_uri)
 
-#-------------------------------------------------------------------------------
-# Concordance report: Statistical Area 2 2023 to Urban Rural 2023
 
-sa2_to_ur <- read_csv("C:/rfiles/DATA422/Project/urban_rural_to_sa2_concord_2023.csv",
-                      skip = 7,
-                      col_names = c("sa2_code", "sa2_descriptor", "Mapping", "ur_code","ur_descriptor"))
-head(sa2_to_ur)
 
 #-------------------------------------------------------------------------------
 # CLEAN DATA
@@ -53,7 +55,7 @@ sa2 %>% count(sa2_code) # 2395 unique values, so no duplicates
 sa2 %>% count(sa2_descriptor) # 2395 unique values, so no duplicates
 
 # convert code from character to integer
-sa2$sa2_code <- as.integer(sa2$sa2_code)
+sa2$sa2_code <- as.numeric(sa2$sa2_code)
 head(sa2)
 
 summary(sa2)
@@ -88,4 +90,21 @@ sa2_to_ta <- sa2_to_ta %>% select(-Mapping)
 colnames(sa2_to_ta)
 
 #-------------------------------------------------------------------------------
-#
+# sa2_to_ur
+
+summary(sa2_to_ur)
+str(sa2_to_ur)
+
+# check for NA
+sa2_to_ur %>% filter(is.na(sa2_code))
+sa2_to_ur %>% filter(is.na(sa2_descriptor))
+sa2_to_ur %>% filter(is.na(Mapping))
+sa2_to_ur %>% filter(is.na(ur_code))
+sa2_to_ur %>% filter(is.na(ur_descriptor))
+
+# check for duplicates
+sa2_to_ur %>% count(sa2_code) # 2395 unique values, so no duplicates
+sa2_to_ur %>% count(sa2_descriptor) # 2395 unique values
+sa2_to_ur %>% count(Mapping) # 4 values
+sa2_to_ur %>% count(ur_code) # 745 unique values
+sa2_to_ur %>% count(ur_descriptor) #745 unique values
