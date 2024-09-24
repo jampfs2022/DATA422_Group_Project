@@ -91,6 +91,7 @@ colnames(sa2_to_ta)
 
 #-------------------------------------------------------------------------------
 # sa2_to_ur
+# 2815
 
 summary(sa2_to_ur)
 str(sa2_to_ur)
@@ -103,8 +104,33 @@ sa2_to_ur %>% filter(is.na(ur_code))
 sa2_to_ur %>% filter(is.na(ur_descriptor))
 
 # check for duplicates
-sa2_to_ur %>% count(sa2_code) # 2395 unique values, so no duplicates
-sa2_to_ur %>% count(sa2_descriptor) # 2395 unique values
+sa2_to_ur %>% count(sa2_code) # 2395 unique values, so there are 420 duplicates
+sa2_to_ur %>% count(sa2_descriptor) # 2395 unique values, so 420 duplicates
 sa2_to_ur %>% count(Mapping) # 4 values
 sa2_to_ur %>% count(ur_code) # 745 unique values
-sa2_to_ur %>% count(ur_descriptor) #745 unique values
+sa2_to_ur %>% count(ur_descriptor) # 745 unique values
+
+# find the duplicates
+
+sa2_to_ur %>%
+  group_by(sa2_code) %>%
+  filter(n() > 1) %>%
+  distinct(sa2_code)
+# 270
+
+sa2_to_ur %>%
+  group_by(sa2_code) %>%
+  filter(n() > 1) %>%
+  ungroup()
+# 690
+
+# (270 + 420 = 690)
+
+#-------------------------------------------------------------------------------
+# ur_to_uri
+# 745
+
+summary(ur_to_uri)
+str(ur_to_uri)
+
+
