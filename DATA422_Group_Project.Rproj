@@ -11,5 +11,8 @@ Encoding: UTF-8
 
 RnwWeave: Sweave
 LaTeX: pdfLaTeX
+<<<<<<< HEAD
 
 StripTrailingWhitespace: Yes
+=======
+>>>>>>> b28034951c5269ecae07167d02fc0bc98b3b8763
