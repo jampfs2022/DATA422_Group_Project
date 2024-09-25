@@ -148,7 +148,7 @@ ur_to_uri %>% count(uri_code) # 9 unique values
 ur_to_uri %>% count(uri_descriptor) # 9 unique values
 
 # remove redundant column
-ur_to_uri <- ur_to_uri%>% select(-Mapping)
+ur_to_uri <- ur_to_uri %>% select(-Mapping)
 colnames(ur_to_uri)
 
 
