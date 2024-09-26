@@ -43,28 +43,90 @@ str(spark_clean)
 # check for NA
 #-------------------------------------------------------------------------------
 
-na_columns <- spark_clean %>%
-  map_lgl(~ any(is.na(.))) %>%
-  enframe(name = "column", value = "has_na") %>%
-  filter(has_na)
-print(na_columns)
+# Table 1: Count of NA values
+missing_count <- spark_clean %>%
+  summarise(across(everything(), ~ sum(is.na(.))))
 
-# so yes, there are NA values. How many?
+# Table 2: Percentage of NA values
+missing_percentage <- spark_clean %>%
+  summarise(across(everything(), ~ mean(is.na(.)) * 100))
 
-na_count <- spark_clean %>%
-  summarise(
-    na_count = sum(is.na(spark_devices)),
-    total_count = n(),
-    na_percentage = (na_count / total_count) * 100
-    )
-print(na_count)
+# Print the two tables
+print(missing_count)
+print(missing_percentage)
 
-# 14157 NA values, so will need a missing value strategy.
+# 14157 NA values in "spark_devices" column, so will need a missing value strategy.
 # This is 1.76% of the data
 
+#-------------------------------------------------------------------------------
+# Statistics
+#-------------------------------------------------------------------------------
+
+summary(spark_clean)
 
 #-------------------------------------------------------------------------------
 # Plot histogram to check distribution
 #-------------------------------------------------------------------------------
+
+ggplot(spark_clean, aes(x = spark_devices)) +
+  geom_histogram(binwidth = 10, fill = "blue", colour = "darkred") +
+  labs(title = "Histogram of Spark Devices",
+       x = "Number of Spark Devices",
+       y = "Frequency"
+       ) +
+  theme_minimal()
+
+
+# show counts
+
+# Counting distinct values in the spark_devices column
+distinct_counts <- spark_clean %>%
+  count(spark_devices, sort = TRUE)
+print(distinct_counts)
+
+# 0:   37148
+# NA:  14157
+# remove these values and plot again.
+
+spark_cut <-  spark_clean %>%
+  filter(spark_devices != 0 & !is.na(spark_devices))
+
+# Counting distinct values in the spark_devices column
+distinct_counts <- spark_cut %>%
+  count(spark_devices, sort = TRUE)
+print(distinct_counts)
+
+# why are there decimal values? I thought this was a straight count of devices per hour?
+
+# A tibble: 753,829 × 2
+# spark_devices     n
+# <dbl> <int>
+#   1          10.5    28
+# 2          21      28
+# 3         218.     28
+# 4         436.     28
+# 5          11.5    14
+# 6          13.0    14
+# 7          13.7    14
+# 8          15.4    14
+# 9          16.9    14
+# 10          17.2    14
+
+ggplot(spark_cut, aes(x = spark_devices)) +
+  geom_histogram(binwidth = 1, fill = "blue", colour = "darkred") +
+  labs(title = "Histogram of Spark Devices",
+       x = "Number of Spark Devices",
+       y = "Frequency"
+  ) +
+  theme_minimal()
+
+# check the largest values:
+top_10_spark_devices <- spark_cut %>%
+  arrange(desc(spark_devices)) %>%
+  select(spark_devices) %>%
+  head(30)
+print(top_10_spark_devices, n = 30)
+
+# so not a lone outlier.
 
 
