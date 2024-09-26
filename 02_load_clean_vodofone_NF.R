@@ -47,26 +47,66 @@ str(vodafone_clean)
 # check for NA
 #-------------------------------------------------------------------------------
 
-na_columns <- vodafone_clean %>%
-  map_lgl(~ any(is.na(.))) %>%
-  enframe(name = "column", value = "has_na") %>%
-  filter(has_na)
-print(na_columns)
+# Table 1: Count of NA values
+missing_count <- vodafone_clean %>%
+  summarise(across(everything(), ~ sum(is.na(.))))
 
-# so yes, there are NA values. How many?
+# Table 2: Percentage of NA values
+missing_percentage <- vodafone_clean %>%
+  summarise(across(everything(), ~ mean(is.na(.)) * 100))
 
-na_count <- vodafone_clean %>%
-  summarise(
-    na_count = sum(is.na(vodafone_devices)),
-    total_count = n(),
-    na_percentage = (na_count / total_count) * 100
-  )
-print(na_count)
+# Print the two tables
+print(missing_count)
+print(missing_percentage)
 
 # 14157 NA values, so will need a missing value strategy.
 # This is 1.76% of the data
 
 
 #-------------------------------------------------------------------------------
+# Statistics
+#-------------------------------------------------------------------------------
+
+summary(vodafone_clean)
+
+#-------------------------------------------------------------------------------
 # Plot histogram to check distribution
 #-------------------------------------------------------------------------------
+
+ggplot(vodafone_clean, aes(x = vodafone_devices)) +
+  geom_histogram(binwidth = 10, fill = "blue", colour = "darkred") +
+  labs(title = "Histogram of Spark Devices",
+       x = "Number of Spark Devices",
+       y = "Frequency"
+  ) +
+  theme_minimal()
+
+
+# show counts
+
+# Counting distinct values in the spark_devices column
+distinct_counts <- vodafone_clean %>%
+  count(vodafone_devices, sort = TRUE)
+print(distinct_counts)
+
+# 0:   37148
+# NA:  14112
+# NaN: 45
+# remove these values and plot again.
+
+vodafone_cut <- vodafone_clean %>%
+  filter(!is.nan(vodafone_devices) & vodafone_devices != 0 & !is.na(vodafone_devices))
+
+
+# Counting distinct values in the spark_devices column
+distinct_counts <- vodafone_cut %>%
+  count(vodafone_devices, sort = TRUE)
+print(distinct_counts)
+
+ggplot(vodafone_cut, aes(x = vodafone_devices)) +
+  geom_histogram(binwidth = 10, fill = "magenta", colour = "black") +
+  labs(title = "Histogram of Spark Devices",
+       x = "Number of Spark Devices",
+       y = "Frequency"
+  ) +
+  theme_minimal()
