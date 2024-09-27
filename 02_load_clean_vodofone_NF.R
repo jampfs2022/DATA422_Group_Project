@@ -104,8 +104,8 @@ distinct_counts <- vodafone_cut %>%
 print(distinct_counts)
 
 ggplot(vodafone_cut, aes(x = vodafone_devices)) +
-  geom_histogram(binwidth = 10, fill = "magenta", colour = "black") +
-  labs(title = "Histogram of Spark Devices",
+  geom_histogram(binwidth = 10, fill = "darkgreen", colour = "darkgreen") +
+  labs(title = "Hourly counts of mobile phones (by Spark)",
        x = "Number of Spark Devices",
        y = "Frequency"
   ) +
