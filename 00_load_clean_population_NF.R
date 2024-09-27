@@ -24,6 +24,8 @@ pop_clean <- pop %>%
   select(where(~ n_distinct(.) > 1))
 head(pop_clean)
 
+
+
 #-------------------------------------------------------------------------------
 # check for NA values
 
@@ -52,7 +54,7 @@ head(pop_clean)
 # Now rename columns
 
 pop_clean <- pop_clean %>%
-  rename(age = "AGE_POPES_SUB_006", area = "AREA_POPES_SUB_006", count = "OBS_VALUE")
+  rename(age = "AGE_POPES_SUB_006", sa2_code = "AREA_POPES_SUB_006", count = "OBS_VALUE")
 head(pop_clean)
 
 
@@ -61,14 +63,15 @@ head(pop_clean)
 # Remove total lines:
 
 rows_to_remove <- pop_clean %>%
-  filter(area == "NZTA")
+  filter(sa2_code == "NZTA")
 print(rows_to_remove)
 
 # AGE0014      NZTA   968300
 # TOTALALLAGES NZTA  5223100
+# ?? so need to subtract total to get adults???
 
 pop_clean <- pop_clean %>%
-  filter(!(area == "NZTA"))
+  filter(!(sa2_code == "NZTA"))
 summary(pop_clean)
 
 
@@ -83,3 +86,12 @@ print(age_summary)
 
 # AGE0014          2269030
 # TOTALALLAGES    12185400
+
+# Reshape into TIDY format:
+
+#-------------------------------------------------------------------------------
+# Reshaping the dataframe - two different fields in the "age" column
+pop_clean <- pop_clean %>%
+  pivot_wider(names_from = age, values_from = count)
+head(pop_clean)
+
