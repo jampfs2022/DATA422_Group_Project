@@ -113,18 +113,27 @@ sa2_to_ur %>% count(ur_descriptor) # 745 unique values
 # find the duplicates
 
 sa2_to_ur %>%
-  group_by(sa2_code) %>%
-  filter(n() > 1) %>%
-  distinct(sa2_code)
-# 270
+  group_by(across(everything())) %>%
+  filter(n() >1) %>%
+  ungroup()
+# no complete rows are duplicates
 
 sa2_to_ur %>%
   group_by(sa2_code) %>%
   filter(n() > 1) %>%
-  ungroup()
-# 690
+  distinct(sa2_code)
+# but 270 sa2_code values are duplicated
 
+duplicates <- sa2_to_ur %>%
+  group_by(sa2_code) %>%
+  filter(n() > 1) %>%
+  ungroup()
+# with  690, so 270 values have 420 additional duplicates.
 # (270 + 420 = 690)
+print(duplicates)
+
+
+
 
 #-------------------------------------------------------------------------------
 # ur_to_uri
@@ -165,7 +174,5 @@ comparison_df <- sa2 %>%
 
 # View rows where there is a mismatch
 comparison_df %>% filter(!same_col1 | !same_col2)
-
-
 
 
