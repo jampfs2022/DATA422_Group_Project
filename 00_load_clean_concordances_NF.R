@@ -175,4 +175,18 @@ comparison_df <- sa2 %>%
 # View rows where there is a mismatch
 comparison_df %>% filter(!same_col1 | !same_col2)
 
+#------------------------------------------------------------------------------
+# distinct values
 
+# uri codes
+distinct_uri_values <- ur_to_uri %>%
+  select(uri_descriptor, uri_code) %>%    # Select the relevant columns
+  distinct()                              # Get distinct combinations
+print(distinct_uri_values)
+
+
+# ur codes
+distinct_ur_values <- ur_to_uri %>%
+  select(ur_descriptor, ur_code) %>%    # Select the relevant columns
+  distinct()                              # Get distinct combinations
+print(distinct_ur_values)

@@ -16,7 +16,7 @@ duplicates <- concordances %>%
   group_by(across(everything())) %>%  # Group by all columns
   filter(n() > 1) %>%                 # Keep only rows that appear more than once
   ungroup()                           # Un-group after filtering
-
+print(duplicates)
 # none, all good
 
 # check for NA values
@@ -33,9 +33,21 @@ head(concordances)
 
 #-------------------------------------------------------------------------------
 # now join POPULATION (sa2)
-# doesn't work - check format of sa2_codes
 
-populuation_by_areas <- concordances %>%
+population_by_areas <- concordances %>%
   left_join(pop_clean, by = "sa2_code")
-head(populuation_by_areas)
+head(population_by_areas)
+str(population_by_areas)
 
+# Find Auckland CBD
+
+# uri codes
+distinct_uri_values <- population_by_areas %>%
+  select(uri_descriptor, uri_code) %>%    # Select the relevant columns
+  distinct()                              # Get distinct combinations
+print(distinct_uri_values)
+
+
+auckland_areas <- population_by_areas %>%
+  filter(ur_descriptor == "Auckland" & uri_code %in% c(14, 12, 11, 13))
+head(auckland_areas)
