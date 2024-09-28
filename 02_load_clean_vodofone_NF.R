@@ -15,69 +15,49 @@ library(summarytools)
 vodafone <- read_parquet("C:/rfiles/DATA422/Project/vf_data.parquet")
 head(vodafone)
 
-str(vodafone)
-# [811,752 × 3]
+dfSummary(vodafone)
+# Dimensions: 811752 x 3
+# Duplicates: 6048
+# Variables:
+# -- dt: 336 distinct values, as expected, no missing
+# -- area: 2395 distinct values as expected.
+# ---- 3 areas have duplicates (2688), all others have 336 rows as expected
+# -----> 126801, 179501, 341801  - same 3 as in spark
+# -- devices: min < med < max: 0 < 404.5 < 5595.9, missing: 14157  (1.7%)
 
-vodafone_clean <- vodafone  %>%
+vodafone_tidy <- vodafone  %>%
   rename(time_stamp = "dt", sa2_code = "area", vodafone_devices = "devices") %>%
   mutate(time_stamp = ymd_hms(time_stamp))
+head(vodafone_tidy)
+# time_stamp, sa2_code, vodafone_devices
 
-head(vodafone_clean)
-str(vodafone_clean)
 
 #-------------------------------------------------------------------------------
-# Check for duplicates
-#-------------------------------------------------------------------------------
-
-# Identify and view duplicate rows
-
-duplicate_count <- vodafone_clean %>%
-  filter(duplicated(.)) %>%
-  nrow()
-print(duplicate_count)
-#6048 duplicate rows
-
-
 # Remove duplicates
-
-vodafone_clean <- vodafone_clean %>%
-  distinct()
-
-str(vodafone_clean)
-# [805,704 × 3]
-
-
-#-------------------------------------------------------------------------------
-# check for NA
 #-------------------------------------------------------------------------------
 
-# Table 1: Count of NA values
-missing_count <- vodafone_clean %>%
-  summarise(across(everything(), ~ sum(is.na(.))))
-
-# Table 2: Percentage of NA values
-missing_percentage <- vodafone_clean %>%
-  summarise(across(everything(), ~ mean(is.na(.)) * 100))
-
-# Print the two tables
-print(missing_count)
-print(missing_percentage)
-
-# 14157 NA values, so will need a missing value strategy.
-# This is 1.76% of the data
+# should be this number of rows:
+distinct_combinations <- vodafone_tidy %>%
+  distinct(sa2_code, time_stamp) %>%
+  nrow()
+print(distinct_combinations)
+# 804696
+# this means we are missing 24 combinations.
 
 
-#-------------------------------------------------------------------------------
-# Statistics
-#-------------------------------------------------------------------------------
-
-summary(vodafone_clean)
+# takes a while to run:
+vodafone_tidy_max <- vodafone_tidy %>%
+  group_by(sa2_code, time_stamp) %>%
+  slice_max(order_by = vodafone_devices, n = 1, with_ties = FALSE) %>%
+  ungroup()
+print(nrow(vodafone_tidy_max))
+# 804696 as expected
 
 #-------------------------------------------------------------------------------
 # Plot histogram to check distribution
 #-------------------------------------------------------------------------------
 
-ggplot(vodafone_clean, aes(x = vodafone_devices)) +
+ggplot(vodafone_tidy_max , aes(x = vodafone_devices)) +
   geom_histogram(binwidth = 10, fill = "blue", colour = "darkred") +
   labs(title = "Histogram of Spark Devices",
        x = "Number of Spark Devices",
@@ -85,6 +65,7 @@ ggplot(vodafone_clean, aes(x = vodafone_devices)) +
   ) +
   theme_minimal()
 
+# very similar to spark
 
 # show counts
 
@@ -93,24 +74,8 @@ distinct_counts <- vodafone_clean %>%
   count(vodafone_devices, sort = TRUE)
 print(distinct_counts)
 
-# 0:   37148
+# 0:   37157
 # NA:  14112
 # NaN: 45
-# remove these values and plot again.
 
-vodafone_cut <- vodafone_clean %>%
-  filter(!is.nan(vodafone_devices) & vodafone_devices != 0 & !is.na(vodafone_devices))
-
-
-# Counting distinct values in the spark_devices column
-distinct_counts <- vodafone_cut %>%
-  count(vodafone_devices, sort = TRUE)
-print(distinct_counts)
-
-ggplot(vodafone_cut, aes(x = vodafone_devices)) +
-  geom_histogram(binwidth = 10, fill = "darkgreen", colour = "darkgreen") +
-  labs(title = "Hourly counts of mobile phones (by Spark)",
-       x = "Number of Spark Devices",
-       y = "Frequency"
-  ) +
-  theme_minimal()
+# so need to impute NA and NaN
