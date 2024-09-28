@@ -25,16 +25,16 @@ library(summarytools)
 #-------------------------------------------------------------------------------
 
 # Classification Report: Statistical Area 2 2023
-sa2 <- read_csv("C:/rfiles/DATA422/Project/sa2_2023.csv",
+sa2 <- read_csv("sa2_2023.csv",
                 skip = 7,
-                col_names = c("sa2_code", "sa2_name")
+                col_names = c("sa2_code", "sa2_name", "unknown")
 )
 head(sa2)
 
 #------------------------------
 # Concordance Report: Statistical Area 2 2023 to Territorial Authority 2023
 
-sa2_to_ta <- read_csv("C:/rfiles/DATA422/Project/sa2_ta_concord_2023.csv",
+sa2_to_ta <- read_csv("sa2_ta_concord_2023.csv",
                       skip = 7,
                       col_names = c("sa2_code", "sa2_name", "Mapping", "ta_code","ta_name"))
 head(sa2_to_ta)
@@ -42,7 +42,7 @@ head(sa2_to_ta)
 #------------------------------
 # Concordance report: Statistical Area 2 2023 to Urban Rural 2023
 
-sa2_to_ur <- read_csv("C:/rfiles/DATA422/Project/urban_rural_to_sa2_concord_2023.csv",
+sa2_to_ur <- read_csv("urban_rural_to_sa2_concord_2023.csv",
                       skip = 7,
                       col_names = c("sa2_code", "sa2_name", "Mapping", "ur_code","ur_name"))
 head(sa2_to_ur)
@@ -50,7 +50,7 @@ head(sa2_to_ur)
 #------------------------------
 # Concordance Report: Urban Rural 2023 to Urban Rural Indicator
 
-ur_to_uri <- read_csv("C:/rfiles/DATA422/Project/urban_rural_to_indicator_2023.csv",
+ur_to_uri <- read_csv("urban_rural_to_indicator_2023.csv",
                       skip = 7,
                       col_names = c("ur_code", "ur_name", "Mapping", "uri_code","uri_name"))
 head(ur_to_uri)
@@ -58,7 +58,7 @@ head(ur_to_uri)
 #------------------------------
 # Sub-national Population Estimates
 
-subnational_population <- read_csv("C:/rfiles/DATA422/Project/subnational_pop_ests.csv")
+subnational_population <- read_csv("subnational_pop_ests.csv")
 head(subnational_population)
 
 #-------------------------------------------------------------------------------
@@ -124,7 +124,8 @@ dfSummary(subnational_population)
 
 # Convert sa2_code to character to match population (and allow join)
 sa2_tidy <- sa2 %>%
-  mutate(sa2_code = as.numeric(sa2_code))
+  mutate(sa2_code = as.numeric(sa2_code)) %>%
+  select(-unknown)
 
 #------------------------------
 # Remove constant columns
