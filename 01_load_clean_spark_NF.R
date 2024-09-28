@@ -5,6 +5,8 @@
 library(tidyverse)
 library(lubridate)
 library(plotly)
+library(summarytools)
+
 #-------------------------------------------------------------------------------
 # load data
 #-------------------------------------------------------------------------------
@@ -21,7 +23,13 @@ spark_tidy1 <- spark %>%
 head(spark_tidy1)
 
 #-------------------------------------------------------------------------------
-# check data
+# Use to view a slice of the code
+#-------------------------------------------------------------------------------
+
+rows_to_display <- spark_tidy2 %>%
+  slice(811500:811776)
+print(rows_to_display, n = 200)
+
 #-------------------------------------------------------------------------------
 # Explore duplicates
 #-------------------------------------------------------------------------------
@@ -29,25 +37,53 @@ head(spark_tidy1)
 dfSummary(spark_tidy1)
 # dim: 811,776 x 3
 # duplicates: 6021
-# ... so remove these before continuing
 
 # There are 336 hours in time period, and 2395 sa2 regions.
 # therefore should only be 804,720 rows
 
-rows_to_display <- spark_tidy2 %>%
-  slice(811500:811776)
-print(rows_to_display, n = 200)
-
+# ------- look by timestamp---------
 # how many sa2 rows per timestamp?
 sa2s_per_time <- spark_tidy1 %>%
   group_by(time_stamp) %>%
   summarise(count = n(), .groups = "drop")
 print(sa2s_per_time, n = 340)
-
-# or:
+# and:
 distinct_counts <- sa2s_per_time %>%
   distinct(count)
 print(distinct_counts)
+
+# i.e. there are 2416 rows for each timestamp, when there should only be 2395.
+# This is 21 rows extra
+
+# ------- look by sa2_code ---------
+
+times_per_sa2 <- spark_tidy1 %>%
+  group_by(sa2_code) %>%
+  summarise(count = n(), .groups = "drop")
+print(times_per_sa2, n = 10)
+# and:
+distinct_counts <- times_per_sa2 %>%
+  distinct(count)
+print(distinct_counts)
+
+# aha! at least one has 2688 instead of 336
+# which sa2_codes?
+
+# Find the sa2_code values with 2688 rows
+sa2_code_with_2688 <- times_per_sa2 %>%
+  filter(count == 2688)
+print(sa2_code_with_2688)
+
+
+# sa2_code count
+# <dbl> <int>
+#   1   126801  2688
+# 2   179501  2688
+# 3   341801  2688
+
+
+
+
 
 #-------------------------------
 # plot to view any pattern
@@ -59,14 +95,14 @@ interactive_plot
 #-------------------------------
 # look at a specific set of 21 duplicates
 
-specific_timestamp <- ymd_hms("2024-06-02 12:00:00")
+specific_timestamp <- ymd_hms("2024-06-02 13:00:00")
 
 # Filter the dataframe for that timestamp and view the duplicates
 duplicates <- spark_tidy1 %>%
   filter(time_stamp == specific_timestamp)  %>%
   group_by(sa2_code) %>%
   filter(n() > 1)  # Keep only duplicates
-print(duplicates, n = 25)
+print(duplicates, n = 30)
 
 #-------------------------------------------------------------------------------
 # Remove duplicates?

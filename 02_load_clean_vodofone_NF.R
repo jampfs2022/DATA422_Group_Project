@@ -4,7 +4,9 @@
 
 library(tidyverse)
 library(arrow)
-
+library(lubridate)
+library(plotly)
+library(summarytools)
 #-------------------------------------------------------------------------------
 # load data
 #-------------------------------------------------------------------------------
@@ -17,7 +19,9 @@ str(vodafone)
 # [811,752 × 3]
 
 vodafone_clean <- vodafone  %>%
-  rename(time_stamp = "dt", sa2_code = "area", vodafone_devices = "devices")
+  rename(time_stamp = "dt", sa2_code = "area", vodafone_devices = "devices") %>%
+  mutate(time_stamp = ymd_hms(time_stamp))
+
 head(vodafone_clean)
 str(vodafone_clean)
 
