@@ -125,24 +125,19 @@ print(nrow(spark_tidy_max))
 #------------------ re-written up to here. Below needs updating ----------------
 #-------------------------------------------------------------------------------
 
-
-
-
-
-
 dfSummary(spark_tidy_max)
-# dim: 805755 x 3
+# dim: 804720 x 3
 # duplicates: 0
 # vars;
-# - time_stamp: 336 distinct values over 13 days (2 June - 16 June 2024)
-# - sa2_code: 2395 distinct values
-# - spark devices: min < med < max: 0 < 943 < 13057; 14157 (1.8% missing).
+# - time_stamp: 336 distinct values over 13 days 23 H (2 June - 16 June 2024)
+# - sa2_code: 2395 distinct values as expected
+# - spark devices: min < med < max: 0 < 944 < 13057 ; 14157 (1.8% missing).
 
 #-------------------------------------------------------------------------------
 # Plot histogram to check distribution
 #-------------------------------------------------------------------------------
 
-ggplot(spark_clean, aes(x = spark_devices)) +
+ggplot(spark_tidy_max, aes(x = spark_devices)) +
   geom_histogram(binwidth = 10, fill = "blue", colour = "darkred") +
   labs(title = "Histogram of Spark Devices",
        x = "Number of Spark Devices",
@@ -154,53 +149,28 @@ ggplot(spark_clean, aes(x = spark_devices)) +
 # show counts
 
 # Counting distinct values in the spark_devices column
-distinct_counts <- spark_clean %>%
+distinct_counts <- spark_tidy_max %>%
   count(spark_devices, sort = TRUE)
-print(distinct_counts)
-
-# 0:   37148
+print(distinct_counts, n = 200)
+# 0:   37160
 # NA:  14157
-# remove these values and plot again.
 
-spark_cut <-  spark_clean %>%
-  filter(spark_devices != 0 & !is.na(spark_devices))
+# look at the end of the tail - do we think they are real or not?
 
-# Counting distinct values in the spark_devices column
-distinct_counts <- spark_cut %>%
-  count(spark_devices, sort = TRUE)
-print(distinct_counts)
-
-# why are there decimal values? I thought this was a straight count of devices per hour?
-
-# A tibble: 753,829 × 2
-# spark_devices     n
-# <dbl> <int>
-#   1          10.5    28
-# 2          21      28
-# 3         218.     28
-# 4         436.     28
-# 5          11.5    14
-# 6          13.0    14
-# 7          13.7    14
-# 8          15.4    14
-# 9          16.9    14
-# 10          17.2    14
-
-ggplot(spark_cut, aes(x = spark_devices)) +
-  geom_histogram(binwidth = 1, fill = "blue", colour = "darkred") +
-  labs(title = "Histogram of Spark Devices",
-       x = "Number of Spark Devices",
-       y = "Frequency"
-  ) +
-  theme_minimal()
-
-# check the largest values:
-top_10_spark_devices <- spark_cut %>%
+spark_tail <- spark_tidy_max %>%
   arrange(desc(spark_devices)) %>%
-  select(spark_devices) %>%
-  head(30)
-print(top_10_spark_devices, n = 30)
+  slice_head(n = 20)
+print(spark_tail, n = 20)
 
-# so not a lone outlier.
+# join with sa2_code:
+source("00_load_clean_supplementary_data.R")
+
+spark_tail_2 <- spark_tail %>%
+  left_join(concordances%>% select(sa2_code, sa2_name, ta_name, ur_name, uri_name),
+            by = "sa2_code")
+print(spark_tail_2, n = 20)
+
+# yes, i think they could be genuine - i.e. holiday makers? is this school holidays or some other event?
+# markets, fairs, etc?
 
 
