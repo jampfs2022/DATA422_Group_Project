@@ -3,7 +3,8 @@
 #-------------------------------------------------------------------------------
 
 library(tidyverse)
-
+library(lubridate)
+library(plotly)
 #-------------------------------------------------------------------------------
 # load data
 #-------------------------------------------------------------------------------
@@ -12,57 +13,94 @@ spark <-  read_csv("C:/rfiles/DATA422/Project/sp_data.csv.gz")
 head(as.data.frame(spark), 20)
 # [811,776 x 3]
 
-spark_clean <- spark %>%
-  rename(time_stamp = "ts", sa2_code = "sa2", spark_devices = "cnt")
-head(spark_clean)
-str(spark_clean)
+spark_tidy1 <- spark %>%
+  mutate(ts = ymd_hms(ts)) %>%
+  rename(time_stamp = "ts", sa2_code = "sa2", spark_devices = "cnt") %>%
+  mutate(spark_devices = round(spark_devices))
 
+head(spark_tidy1)
 
 #-------------------------------------------------------------------------------
-# Check for duplicates
+# check data
+#-------------------------------------------------------------------------------
+# Explore duplicates
 #-------------------------------------------------------------------------------
 
-# Identify and view duplicate rows
+dfSummary(spark_tidy1)
+# dim: 811,776 x 3
+# duplicates: 6021
+# ... so remove these before continuing
 
-duplicate_count <- spark_clean %>%
-  filter(duplicated(.)) %>%
-  nrow()
-print(duplicate_count)
-# 6021 duplicate rows
+# There are 336 hours in time period, and 2395 sa2 regions.
+# therefore should only be 804,720 rows
 
+rows_to_display <- spark_tidy2 %>%
+  slice(811500:811776)
+print(rows_to_display, n = 200)
 
-# Remove duplicates
+# how many sa2 rows per timestamp?
+sa2s_per_time <- spark_tidy1 %>%
+  group_by(time_stamp) %>%
+  summarise(count = n(), .groups = "drop")
+print(sa2s_per_time, n = 340)
 
-spark_clean <- spark_clean %>%
+# or:
+distinct_counts <- sa2s_per_time %>%
+  distinct(count)
+print(distinct_counts)
+
+#-------------------------------
+# plot to view any pattern
+
+p <- ggplot(spark_tidy1, aes(x = sa2_code, time_stamp))
+interactive_plot <- ggplotly(p)
+interactive_plot
+
+#-------------------------------
+# look at a specific set of 21 duplicates
+
+specific_timestamp <- ymd_hms("2024-06-02 12:00:00")
+
+# Filter the dataframe for that timestamp and view the duplicates
+duplicates <- spark_tidy1 %>%
+  filter(time_stamp == specific_timestamp)  %>%
+  group_by(sa2_code) %>%
+  filter(n() > 1)  # Keep only duplicates
+print(duplicates, n = 25)
+
+#-------------------------------------------------------------------------------
+# Remove duplicates?
+
+spark_tidy2 <- spark_tidy1 %>%
   distinct()
 
-str(spark_clean)
-# [805,755 × 3]
+dfSummary(spark_tidy2)
+# dim: 805755 x 3
+# duplicates: 0
+# vars;
+# - time_stamp: 336 distinct values over 13 days (2 June - 16 June 2024)
+# - sa2_code: 2395 distinct values
+# - spark devices: min < med < max: 0 < 943 < 13057; 14157 (1.8% missing).
 
 #-------------------------------------------------------------------------------
-# check for NA
+# check for time_stamp and sa2_code duplicates
 #-------------------------------------------------------------------------------
 
-# Table 1: Count of NA values
-missing_count <- spark_clean %>%
-  summarise(across(everything(), ~ sum(is.na(.))))
+duplicate_count <- spark_tidy2 %>%
+  group_by(time_stamp, sa2_code) %>%
+  filter(n() > 1) %>%
+  nrow()
+print(duplicate_count)
+# 2043 rows have n > 1 duplicates in time_stamp and sa2_code, but not in devices.
 
-# Table 2: Percentage of NA values
-missing_percentage <- spark_clean %>%
-  summarise(across(everything(), ~ mean(is.na(.)) * 100))
+total_duplicate_rows_value <- spark_tidy %>%
+  group_by(time_stamp, sa2_code) %>%
+  filter(n() > 1) %>%
+  tally() %>%
+  summarise(total = sum(n))
 
-# Print the two tables
-print(missing_count)
-print(missing_percentage)
+total_duplicate_rows_value <- total_duplicate_rows_value$total
 
-# 14157 NA values in "spark_devices" column, so will need a missing value strategy.
-# This is 1.76% of the data
-
-#-------------------------------------------------------------------------------
-# Statistics
-#-------------------------------------------------------------------------------
-
-summary(spark_clean)
 
 #-------------------------------------------------------------------------------
 # Plot histogram to check distribution
