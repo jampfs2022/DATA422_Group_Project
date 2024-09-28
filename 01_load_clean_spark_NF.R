@@ -26,7 +26,7 @@ head(spark_tidy1)
 # Use to view a slice of the code
 #-------------------------------------------------------------------------------
 
-rows_to_display <- spark_tidy2 %>%
+rows_to_display <- spark_tidy1 %>%
   slice(811500:811776)
 print(rows_to_display, n = 200)
 
@@ -39,7 +39,14 @@ dfSummary(spark_tidy1)
 # duplicates: 6021
 
 # There are 336 hours in time period, and 2395 sa2 regions.
-# therefore should only be 804,720 rows
+# therefore should only be 804,720 rows:
+
+distinct_combinations <- spark_tidy1 %>%
+  distinct(sa2_code, time_stamp) %>%
+  nrow()
+print(distinct_combinations)
+# 804720
+
 
 # ------- look by timestamp---------
 # how many sa2 rows per timestamp?
@@ -77,66 +84,59 @@ print(sa2_code_with_2688)
 
 # sa2_code count
 # <dbl> <int>
-#   1   126801  2688
+# 1   126801  2688
 # 2   179501  2688
 # 3   341801  2688
 
+# save values to investigate further
 
+sa2_codes_to_check <- c(126801, 179501, 341801)
 
+# look at raw data in case decimal gives clues
+spark_duplicates <- spark %>%
+  arrange(sa2, ts) %>%
+  filter(sa2 %in% sa2_codes_to_check)
 
+# So for each timestamp & sa2_code there are 8 values:
+# (mostly) 4 identical values, and 4 identical smaller values
 
-#-------------------------------
-# plot to view any pattern
+# look at counts.
 
-p <- ggplot(spark_tidy1, aes(x = sa2_code, time_stamp))
-interactive_plot <- ggplotly(p)
-interactive_plot
+distinct_counts <- spark_duplicates %>%
+  group_by(cnt) %>%            # Group by the distinct values in the cnt column
+  summarise(count = n())    # Count the number of occurrences of each distinct value
 
-#-------------------------------
-# look at a specific set of 21 duplicates
-
-specific_timestamp <- ymd_hms("2024-06-02 13:00:00")
-
-# Filter the dataframe for that timestamp and view the duplicates
-duplicates <- spark_tidy1 %>%
-  filter(time_stamp == specific_timestamp)  %>%
-  group_by(sa2_code) %>%
-  filter(n() > 1)  # Keep only duplicates
-print(duplicates, n = 30)
+# Display the result
+print(distinct_counts)
 
 #-------------------------------------------------------------------------------
-# Remove duplicates?
+# Remove duplicates - Method 1: take maximum value only
+# - note can't use filter(value == max(value)), as this would return all values
+# if multiple (which there are here)
 
-spark_tidy2 <- spark_tidy1 %>%
-  distinct()
+# this takes a while to run:
+spark_tidy_max <- spark_tidy1 %>%
+  group_by(sa2_code, time_stamp) %>%
+  slice_max(order_by = spark_devices, n = 1, with_ties = FALSE) %>%
+  ungroup()
+print(nrow(spark_tidy_max))
 
-dfSummary(spark_tidy2)
+#-------------------------------------------------------------------------------
+#------------------ re-written up to here. Below needs updating ----------------
+#-------------------------------------------------------------------------------
+
+
+
+
+
+
+dfSummary(spark_tidy_max)
 # dim: 805755 x 3
 # duplicates: 0
 # vars;
 # - time_stamp: 336 distinct values over 13 days (2 June - 16 June 2024)
 # - sa2_code: 2395 distinct values
 # - spark devices: min < med < max: 0 < 943 < 13057; 14157 (1.8% missing).
-
-#-------------------------------------------------------------------------------
-# check for time_stamp and sa2_code duplicates
-#-------------------------------------------------------------------------------
-
-duplicate_count <- spark_tidy2 %>%
-  group_by(time_stamp, sa2_code) %>%
-  filter(n() > 1) %>%
-  nrow()
-print(duplicate_count)
-# 2043 rows have n > 1 duplicates in time_stamp and sa2_code, but not in devices.
-
-total_duplicate_rows_value <- spark_tidy %>%
-  group_by(time_stamp, sa2_code) %>%
-  filter(n() > 1) %>%
-  tally() %>%
-  summarise(total = sum(n))
-
-total_duplicate_rows_value <- total_duplicate_rows_value$total
-
 
 #-------------------------------------------------------------------------------
 # Plot histogram to check distribution
