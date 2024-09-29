@@ -52,3 +52,11 @@ dfSummary(all_data)
 
 #-------------------------------------------------------------------------------
 # still has NZ and NaNs, need to go back and impute missing data.
+
+#-------------------------------------------------------------------------------
+# save so don't need to re-run to generate everytime we want to use it
+
+saveRDS(df_final, "df_final.rds")
+
+# check:
+df_loaded <- readRDS("df_final.rds")
