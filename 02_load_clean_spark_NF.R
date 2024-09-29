@@ -11,12 +11,13 @@ library(summarytools)
 # load data
 #-------------------------------------------------------------------------------
 
-spark <-  read_csv("C:/rfiles/DATA422/Project/sp_data.csv.gz")
+spark <-  read_csv("sp_data.csv.gz")
+str(data)
 head(as.data.frame(spark), 20)
 # [811,776 x 3]
 
 spark_tidy1 <- spark %>%
-  mutate(ts = ymd_hms(ts)) %>%
+  mutate(ts = ymd_hms(ts))
   rename(time_stamp = "ts", sa2_code = "sa2", spark_devices = "cnt") %>%
   mutate(spark_devices = round(spark_devices))
 
