@@ -19,7 +19,7 @@ df_midnight <- df_loaded %>%
   filter(hour(time_stamp) == 0) %>%
   mutate(total_devices = spark_devices + vodafone_devices) %>%
   mutate(adult_count = total_count - child_count) %>%
-  mutate(population_weight = (1.2 * (adult_count / (adult_count + child_count)) +
+  mutate(population_weight = (1 * (adult_count / (adult_count + child_count)) +
                                 0.1 * (child_count / (adult_count + child_count)))) %>%
   mutate(estimated_population = total_devices / population_weight) %>%
   select(total_devices, adult_count, child_count, total_count, estimated_population)
