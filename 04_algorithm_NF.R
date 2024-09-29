@@ -76,8 +76,23 @@ print(rmse)
 # -----------------------------------------------------------------------------
 # maybe overfitting, need to relax?
 
-library(glmnet)
-x <- model.matrix(total_count ~ adult_devices + child_devices, df_for_model)
-y <- df_for_model$total_count
-model <- cv.glmnet(x, y, alpha = 0, na.action = na.omit)
+# temporararily, remove missing values (go back and impute later on)
+df_filtered <- df_for_model %>%
+  filter(!is.na(total_count) & !is.na(adult_devices) & !is.na(child_devices))
 
+library(glmnet)
+x <- model.matrix(total_count ~ adult_devices + child_devices, df_filtered)
+y <- df_filtered$total_count
+model <- cv.glmnet(x, y, alpha = 1)
+
+
+# Extract coefficients for the min lambda
+coefficients_min <- coef(model, s = "lambda.min")
+
+# Extracting specific coefficients
+alpha <- coefficients_min["adult_devices", 1]  # Replace with the correct index if needed
+beta <- coefficients_min["child_devices", 1]    # Replace with the correct index if needed
+
+# Print the coefficients
+cat("Alpha (adult_devices):", alpha, "\n")
+cat("Beta (child_devices):", beta, "\n")
