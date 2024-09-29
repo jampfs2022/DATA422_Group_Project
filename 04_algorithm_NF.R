@@ -5,8 +5,9 @@ library(summarytools)
 # load data
 #-------------------------------------------------------------------------------
 
-df_loaded <- readRDS("df_final.rds")
+df_loaded <- readRDS("df_merged.rds")
 str(df_loaded)
+
 
 #-------------------------------------------------------------------------------
 # extract counts from midnight
@@ -16,33 +17,47 @@ str(df_loaded)
 # are dropped from tower
 
 df_midnight <- df_loaded %>%
+  select(time_stamp, vodafone_devices, spark_devices, sa2_code, ta_code, child_count, total_count) %>%
   filter(hour(time_stamp) == 0) %>%
-  mutate(total_devices = spark_devices + vodafone_devices) %>%
-  mutate(adult_count = total_count - child_count) %>%
-  mutate(population_weight = (1 * (adult_count / (adult_count + child_count)) +
-                                0.1 * (child_count / (adult_count + child_count)))) %>%
-  mutate(estimated_population = total_devices / population_weight) %>%
-  select(total_devices, adult_count, child_count, total_count, estimated_population, ta_code)
+  mutate(total_devices = spark_devices + vodafone_devices,
+         adult_count = total_count - child_count,
+         adult_ratio = adult_count / (adult_count + child_count),
+         child_ratio = child_count / (adult_count + child_count)) %>%
+  select(-time_stamp)
 
 head(df_midnight)
+
+
+#-------------------------------------------------------------------------------
+# First try: use 0.9* adults, 0.1 * kids
+#-------------------------------------------------------------------------------
+
+population_first_estimate <- df_midnight %>%
+  mutate(population_weight = (0.9 * (adult_count / (adult_count + child_count)) +
+                                0.1 * (child_count / (adult_count + child_count)))) %>%
+  mutate(estimated_population = total_devices / population_weight) %>%
+  select(total_devices, adult_count, child_count, total_count, estimated_population)
+
+head(population_first_estimate)
 
 #------------------------------------------------------------------------------
 # Now want to fit a model to find alpha and beta to minimise the difference between
 # the estimated population and the actual population.
 
-df_for_model <- df_midnight %>%
-  mutate(adult_count = total_count - child_count) %>%
-  mutate(adult_devices = (total_devices) * (adult_count / (adult_count + child_count)),
-         child_devices = (total_devices) * (child_count / (adult_count + child_count)))
+# Fit the linear model
+model <- lm(total_count ~ total_devices + adult_count + child_count, data = df_midnight)
 
-head(df_for_model)
+# Summarize the model
+summary(model)
 
-# Step 2: Fit the linear model
-model <- lm(total_count ~ adult_devices + child_devices, data = df_for_model)
+coef(model)
 
-# Step 3: Extract the coefficients (alpha and beta)
-alpha <- coef(model)["adult_devices"]
-beta <- coef(model)["child_devices"]
+library(broom)
+coefficients <- tidy(model)
+# Print the coefficients
+print(coefficients)
+
+#------------------------------re-written up to here, need to update below -----
 
 # Display the results
 cat("Estimated alpha (Adults' device ownership rate):", alpha, "\n")
