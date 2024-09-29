@@ -9,20 +9,20 @@ df_loaded <- readRDS("df_final.rds")
 str(df_loaded)
 
 #-------------------------------------------------------------------------------
-# extract counts from 1am
+# extract counts from midnight
 #-------------------------------------------------------------------------------
 # need to justify choice of time to use - plot to see patterns
 # looking for the night time drop off, but not too late in night that inactive cell phones
 # are dropped from tower
 
 df_midnight <- df_loaded %>%
-  filter(hour(time_stamp) == 1) %>%
+  filter(hour(time_stamp) == 0) %>%
   mutate(total_devices = spark_devices + vodafone_devices) %>%
   mutate(adult_count = total_count - child_count) %>%
   mutate(population_weight = (1 * (adult_count / (adult_count + child_count)) +
                                 0.1 * (child_count / (adult_count + child_count)))) %>%
   mutate(estimated_population = total_devices / population_weight) %>%
-  select(total_devices, adult_count, child_count, total_count, estimated_population)
+  select(total_devices, adult_count, child_count, total_count, estimated_population, ta_code)
 
 head(df_midnight)
 
@@ -49,13 +49,13 @@ cat("Estimated alpha (Adults' device ownership rate):", alpha, "\n")
 cat("Estimated beta (Children's device ownership rate):", beta, "\n")
 
 
-df_estimates <- df_for_model %>%
-  mutate(estimated_population = (total_devices) /
-           (alpha * (adult_count / (adult_count + child_count)) +
-              beta * (child_count / (adult_count + child_count)))) %>%
- select(total_devices, adult_count, child_count, total_count, estimated_population)
-
-head(df_estimates)
+# df_estimates <- df_for_model %>%
+#   mutate(estimated_population = (total_devices) /
+#            (alpha * (adult_count / (adult_count + child_count)) +
+#               beta * (child_count / (adult_count + child_count)))) %>%
+#  select(total_devices, adult_count, child_count, total_count, estimated_population, ta_code)
+#
+# head(df_estimates)
 
 #-------------------------------------------------------------------------------
 # make predictions
@@ -96,3 +96,10 @@ beta <- coefficients_min["child_devices", 1]    # Replace with the correct index
 # Print the coefficients
 cat("Alpha (adult_devices):", alpha, "\n")
 cat("Beta (child_devices):", beta, "\n")
+
+# ----------------------------------------------------------------------------
+# save data.
+
+head(df_filtered)
+
+saveRDS(df_filtered, "df_final.rds")
