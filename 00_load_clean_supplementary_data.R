@@ -174,24 +174,26 @@ dfSummary(population_tidier)
 #-------------------------------------------------------------------------------
 
 # First join the concordances
+# -- note that sa2_code is numeric in the concordances, but character in the population df
+# -- note: didn't actually need sa2.csv
 concordances <- sa2_to_ta_tidy %>%
   full_join(sa2_to_ur_tidy %>% select(sa2_code, ur_code, ur_name, sa2_to_ur_mapping), by = "sa2_code") %>%
-  full_join(ur_to_uri_tidy  %>% select(ur_code, uri_code, uri_name), by = "ur_code")
+  full_join(ur_to_uri_tidy  %>% select(ur_code, uri_code, uri_name), by = "ur_code") %>%
+  left_join(population_tidier %>% mutate(sa2_code = as.numeric(sa2_code)), by = "sa2_code")
 
 head(concordances)
 
-# note: didn't actually need sa2.csv
-
-# Now join the population, noting that sa2_code is numeric in the concordances, but character in the population df
-
-population_by_area <- concordances %>%
-  left_join(population_tidier %>% mutate(sa2_code = as.numeric(sa2_code)), by = "sa2_code")
-
-head(population_by_area)
-
-dfSummary(population_by_area)
+dfSummary(concordances)
 # 2815 x 11 (note need to deal with duplicates sa2_area, where one area has two (or more? ur_codes))
 # as sa2_code is not unique at the moment.
 # Vars:
 # "sa2_code"          "sa2_name"          "ta_code"           "ta_name"           "ur_code"           "ur_name"
 # "sa2_to_ur_mapping" "uri_code"          "uri_name"          "child_count"       "total_count"
+
+
+# Remove duplicates, just take 1st value
+population_by_area <- concordances %>%
+  distinct(sa2_code, .keep_all = TRUE)
+
+dfSummary(population_by_area)
+# Dimensions: 2395 x 11  Yay!
