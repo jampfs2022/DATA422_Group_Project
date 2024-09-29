@@ -56,7 +56,7 @@ dfSummary(all_data)
 #-------------------------------------------------------------------------------
 # save so don't need to re-run to generate everytime we want to use it
 
-saveRDS(df_final, "df_final.rds")
+saveRDS(df_final, "df_merged.rds")
 
 # check:
-df_loaded <- readRDS("df_final.rds")
+df_loaded <- readRDS("df_merged.rds")
