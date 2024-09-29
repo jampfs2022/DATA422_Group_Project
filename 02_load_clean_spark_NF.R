@@ -121,10 +121,6 @@ spark_tidy_max <- spark_tidy1 %>%
   ungroup()
 print(nrow(spark_tidy_max))
 
-#-------------------------------------------------------------------------------
-#------------------ re-written up to here. Below needs updating ----------------
-#-------------------------------------------------------------------------------
-
 dfSummary(spark_tidy_max)
 # dim: 804720 x 3
 # duplicates: 0
@@ -166,7 +162,7 @@ print(spark_tail, n = 20)
 source("00_load_clean_supplementary_data.R")
 
 spark_tail_2 <- spark_tail %>%
-  left_join(concordances%>% select(sa2_code, sa2_name, ta_name, ur_name, uri_name),
+  left_join(population_by_area %>% select(sa2_code, sa2_name, ta_name, ur_name, uri_name),
             by = "sa2_code")
 print(spark_tail_2, n = 20)
 
